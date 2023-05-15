@@ -21,6 +21,7 @@ async fn main() -> std::io::Result<()> {
                 ),
             )
             .service(index)
+            .default_service(web::route().to(not_found))
     })
     .bind(("0.0.0.0", 3333))
     .expect("Failed to bind")
@@ -52,9 +53,9 @@ struct Task {
 
 #[post("/new")]
 async fn add_task(task: web::Json<Task>) -> impl Responder {
-    // match task {
-    //     OK(task) => format!("Welcome {}!", task.status),
-    //     Err(err) => format!(""
-    // }
     HttpResponse::Ok().body(format!("TASK: {}\nSTATUS: {}", task.title, task.status))
+}
+
+async fn not_found(req: HttpRequest) -> HttpResponse {
+    HttpResponse::NotFound().body("404 - Not Found")
 }
