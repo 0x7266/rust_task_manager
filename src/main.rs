@@ -1,6 +1,7 @@
 use actix_web::{
-    get, middleware::Logger, web, App, HttpRequest, HttpResponse, HttpServer, Responder,
+    get, middleware::Logger, post, web, App, HttpRequest, HttpResponse, HttpServer, Responder,
 };
+use serde::Deserialize;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -11,7 +12,14 @@ async fn main() -> std::io::Result<()> {
         let logger = Logger::default();
         App::new()
             .wrap(logger)
-            .service(web::scope("/api").service(web::scope("/v1").service(hw).service(echo_user)))
+            .service(
+                web::scope("/api").service(
+                    web::scope("/v1")
+                        .service(hw)
+                        .service(echo_user)
+                        .service(add_task),
+                ),
+            )
             .service(index)
     })
     .bind(("0.0.0.0", 3333))
@@ -34,4 +42,19 @@ async fn echo_user(req: HttpRequest) -> impl Responder {
 #[get("/hw")]
 async fn hw() -> impl Responder {
     HttpResponse::Ok().body("hello, world!")
+}
+
+#[derive(Deserialize)]
+struct Task {
+    status: String,
+    title: String,
+}
+
+#[post("/new")]
+async fn add_task(task: web::Json<Task>) -> impl Responder {
+    // match task {
+    //     OK(task) => format!("Welcome {}!", task.status),
+    //     Err(err) => format!(""
+    // }
+    HttpResponse::Ok().body(format!("TASK: {}\nSTATUS: {}", task.title, task.status))
 }
